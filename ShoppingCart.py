@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
+import copy
 
 class ShoppingCartApp:
     def __init__(self, master):  # Rename root to master
@@ -8,6 +9,10 @@ class ShoppingCartApp:
         self.root.title("Shopping Cart App")
         self.root.configure(bg="#f8f9fa")  # Light background color
         self.cart = {}
+
+        # History for Undo/Redo
+        self.history = []  # Stack for undo
+        self.redo_history = []  # Stack for redo
 
         # Configure dynamic resizing
         self.root.rowconfigure(0, weight=1)
@@ -60,6 +65,12 @@ class ShoppingCartApp:
         self.checkout_button = ttk.Button(button_frame, text="Checkout", command=self.checkout)
         self.checkout_button.grid(row=0, column=2, padx=5, pady=5)
 
+        self.undo_button = ttk.Button(button_frame, text="Undo", command=self.undo)
+        self.undo_button.grid(row=0, column=2, padx=5, pady=5)
+
+        self.redo_button = ttk.Button(button_frame, text="Redo", command=self.redo)
+        self.redo_button.grid(row=0, column=3, padx=5, pady=5)
+
         # Remove frame
         remove_frame = ttk.Frame(self.main_frame)
         remove_frame.grid(row=3, column=0, pady=20)
@@ -96,7 +107,13 @@ class ShoppingCartApp:
         self.search_button = ttk.Button(search_frame, text="Search", command=self.search_item)
         self.search_button.grid(row=0, column=2, padx=5, pady=5)
 
+        # Save state before performing any action
+    def save_state(self):
+        self.history.append(copy.deepcopy(self.cart))
+        self.redo_history.clear()  # Clear redo stack when new action occurs
+
     def add_item(self):
+        self.save_state()
         item = self.item_entry.get()
         try:
             quantity = int(self.quantity_entry.get())
@@ -162,6 +179,7 @@ class ShoppingCartApp:
 
 
     def remove_item(self):
+        self.save_state()
         item = self.remove_item_entry.get()
         try:
             quantity = int(self.remove_quantity_entry.get())
@@ -180,6 +198,7 @@ class ShoppingCartApp:
             messagebox.showerror("Error", "Please enter a valid quantity to remove.")
 
     def sort_alphabetically(self):
+        self.save_state()
         if not self.cart:
             messagebox.showinfo("Sort", "Your cart is empty.")
         else:
@@ -188,6 +207,7 @@ class ShoppingCartApp:
             messagebox.showinfo("Sort", "Cart has been sorted alphabetically by item name.")
 
     def sort_by_price(self):
+        self.save_state()
         if not self.cart:
             messagebox.showinfo("Sort", "Your cart is empty.")
         else:
@@ -206,13 +226,23 @@ class ShoppingCartApp:
             messagebox.showinfo("Checkout", "Thank you for shopping!")
             self.cart.clear()
 
-    def add_to_history(self):
-        self.history.append(self.cart.copy())
-
+        # Undo the last action
     def undo(self):
         if self.history:
-            self.cart = self.history.pop()
+            self.redo_history.append(copy.deepcopy(self.cart))  # Save current state to redo
+            self.cart = self.history.pop()  # Restore previous state
             messagebox.showinfo("Undo", "Last action undone.")
+        else:
+            messagebox.showinfo("Undo", "No actions to undo.")
+
+        # Redo the last undone action
+    def redo(self):
+        if self.redo_history:
+            self.history.append(copy.deepcopy(self.cart))  # Save current state to history
+            self.cart = self.redo_history.pop()  # Restore redo state
+            messagebox.showinfo("Redo", "Redo completed.")
+        else:
+            messagebox.showinfo("Redo", "No actions to redo.")
 
 if __name__ == "__main__":
     root = tk.Tk()
