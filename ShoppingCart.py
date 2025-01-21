@@ -66,10 +66,10 @@ class ShoppingCartApp:
         self.checkout_button.grid(row=0, column=2, padx=5, pady=5)
 
         self.undo_button = ttk.Button(button_frame, text="Undo", command=self.undo)
-        self.undo_button.grid(row=0, column=2, padx=5, pady=5)
+        self.undo_button.grid(row=1, column=0, padx=5, pady=5)
 
         self.redo_button = ttk.Button(button_frame, text="Redo", command=self.redo)
-        self.redo_button.grid(row=0, column=3, padx=5, pady=5)
+        self.redo_button.grid(row=1, column=1, padx=5, pady=5)
 
         # Remove frame
         remove_frame = ttk.Frame(self.main_frame)
